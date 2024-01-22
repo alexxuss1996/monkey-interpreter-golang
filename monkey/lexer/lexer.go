@@ -33,6 +33,14 @@ func (l *Lexer) ReadChar() {
 	l.readPosition += 1
 }
 
+// isLetter checks if the given byte is a letter.
+//
+// char byte
+// bool
+func isLetter(char byte) bool {
+	return 'a' <= char && char <= 'z' || 'A' <= char && char <= 'Z' || char == '_'
+}
+
 // NewToken creates a new token of the given TokenType with the provided character.
 //
 // TokenType: type of the token.
@@ -40,6 +48,18 @@ func (l *Lexer) ReadChar() {
 // token: the newly created token.
 func NewToken(TokenType token.TokenType, char byte) token.Token {
 	return token.Token{Type: TokenType, Literal: string(char)}
+}
+
+// readIdentifier returns a string representing the identifier read by the lexer.
+//
+// No parameters.
+// Returns a string.
+func (l *Lexer) readIdentifier() string {
+	position := l.position
+	for isLetter(l.char) {
+		l.ReadChar()
+	}
+	return l.input[position:l.position]
 }
 
 // NextToken returns the next token in the lexer.
@@ -73,6 +93,13 @@ func (l *Lexer) NextToken() token.Token {
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
+	default:
+		if isLetter(l.char) {
+			tok.Literal = l.readIdentifier()
+			return tok
+		} else {
+			tok = NewToken(token.ILLEGAL, l.char)
+		}
 	}
 	l.ReadChar()
 	return tok
